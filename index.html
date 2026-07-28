@@ -161,9 +161,7 @@
                         <i class="fa-solid fa-caret-down"></i>
                     </a>
                     <ul class="collapse submenu" id="menuSiswa">
-                        <!-- Menu ini diklik akan memanggil fungsi loadDatabaseSiswa() -->
-                        <li><a href="#" class="nav-link text-white" onclick="loadDatabaseSiswa()">
-                            Database Siswa</a></li>
+                        <li><a href="#">Database Siswa</a></li>
                         <li><a href="#">Absensi & Presensi</a></li>
                         <li><a href="#">Pelanggaran & Prestasi</a></li>
                         <li><a href="#">PPDB Online</a></li>
@@ -269,8 +267,7 @@
             </div>
         </nav>
 
-        <!-- Elemen main-content sebagai wadah pengganti halaman dinamis -->
-        <div class="container-fluid bg-white p-4 rounded shadow-sm" id="main-content">
+        <div class="container-fluid bg-white p-4 rounded shadow-sm">
             <h5>Selamat Datang di Panel Admin Lengkap</h5>
             <p class="text-muted">Ringkasan data real-time langsung terhubung dari Google Sheets database Anda.</p>
 
@@ -305,8 +302,6 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
 
     <!-- Script Integrasi Backend Google Apps Script -->
     <script>
@@ -355,93 +350,6 @@
 
         // Jalankan otomatis saat halaman selesai dimuat
         document.addEventListener("DOMContentLoaded", fetchDashboardStats);
-
-        // Fungsi untuk memuat halaman Database Siswa
-function loadDatabaseSiswa() {
-  const mainContent = document.getElementById('main-content');
-  
-  // 1. Tampilkan loading spinner
-  mainContent.innerHTML = `
-    <div class="d-flex justify-content-center align-items-center my-5">
-      <div class="spinner-border text-primary" role="status"></div>
-      <span class="ms-2">Memuat data siswa...</span>
-    </div>
-  `;
-
-  // 2. Panggil API Apps Script (Ganti API_URL dengan Web App URL milik Anda)
-  fetch(API_URL + '?action=read&sheet=Siswa')
-    .then(response => response.json())
-    .then(data => {
-      // 3. Susun HTML Tabel
-      let html = `
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h4>Database Siswa</h4>
-          <button class="btn btn-primary" onclick="showFormTambahSiswa()">
-            <i class="bi bi-plus-lg"></i> Tambah Siswa
-          </button>
-        </div>
-
-        <div class="table-responsive bg-white p-3 rounded shadow-sm">
-          <table class="table table-hover align-middle">
-            <thead class="table-light">
-              <tr>
-                <th>ID</th>
-                <th>NISN</th>
-                <th>Nama Lengkap</th>
-                <th>Kelas</th>
-                <th>L/P</th>
-                <th>Wali & No HP</th>
-                <th>Alamat</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-      `;
-
-      // 4. Looping data siswa dari Google Sheets
-      if (data && data.length > 0) {
-        data.forEach(siswa => {
-          html += `
-            <tr>
-              <td><span class="badge bg-secondary">${siswa.id_siswa}</span></td>
-              <td>${siswa.nisn || '-'}</td>
-              <td class="fw-bold">${siswa.nama_siswa}</td>
-              <td><span class="badge bg-info text-dark">${siswa.kelas}</span></td>
-              <td>${siswa.jenis_kelamin || '-'}</td>
-              <td>
-                <div>${siswa.nama_wali || '-'}</div>
-                <small class="text-muted">${siswa.no_hp_wali || '-'}</small>
-              </td>
-              <td><small>${siswa.alamat || ''}, ${siswa.kelurahan || ''}, ${siswa.kecamatan || ''}, ${siswa.kabupaten || ''}</small></td>
-              <td>
-                <button class="btn btn-sm btn-outline-warning me-1" onclick="editSiswa('${siswa.id_siswa}')">
-                  <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteSiswa('${siswa.id_siswa}')">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </td>
-            </tr>
-          `;
-        });
-      } else {
-        html += `<tr><td colspan="8" class="text-center">Belum ada data siswa.</td></tr>`;
-      }
-
-      html += `
-            </tbody>
-          </table>
-        </div>
-      `;
-
-      // 5. Masukkan HTML ke dalam layar
-      mainContent.innerHTML = html;
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      mainContent.innerHTML = `<div class="alert alert-danger">Gagal memuat data siswa.</div>`;
-    });
-}
     </script>
 </body>
 </html>
