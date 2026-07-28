@@ -269,14 +269,14 @@
 
         <div class="container-fluid bg-white p-4 rounded shadow-sm">
             <h5>Selamat Datang di Panel Admin Lengkap</h5>
-            <p class="text-muted">Ini adalah kerangka dasar seluruh menu sistem informasi sekolah Anda. Fitur dapat dihubungkan dengan backend secara bertahap.</p>
+            <p class="text-muted">Ringkasan data real-time langsung terhubung dari Google Sheets database Anda.</p>
 
             <div class="row mt-4">
                 <div class="col-md-4">
                     <div class="card bg-primary text-white mb-3 shadow-sm border-0">
                         <div class="card-body">
                             <h5 class="card-title fs-6">Total Siswa</h5>
-                            <h2 class="mb-0 fw-bold">0</h2>
+                            <h2 class="mb-0 fw-bold" id="totalSiswa">...</h2>
                         </div>
                     </div>
                 </div>
@@ -284,7 +284,7 @@
                     <div class="card bg-success text-white mb-3 shadow-sm border-0">
                         <div class="card-body">
                             <h5 class="card-title fs-6">Total Guru</h5>
-                            <h2 class="mb-0 fw-bold">0</h2>
+                            <h2 class="mb-0 fw-bold" id="totalGuru">...</h2>
                         </div>
                     </div>
                 </div>
@@ -292,7 +292,7 @@
                     <div class="card bg-warning text-dark mb-3 shadow-sm border-0">
                         <div class="card-body">
                             <h5 class="card-title fs-6">Total Kelas Aktif</h5>
-                            <h2 class="mb-0 fw-bold">0</h2>
+                            <h2 class="mb-0 fw-bold" id="totalKelas">...</h2>
                         </div>
                     </div>
                 </div>
@@ -303,11 +303,53 @@
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Script sederhana untuk Toggle Sidebar di Mobile -->
+    <!-- Script Integrasi Backend Google Apps Script -->
     <script>
+        // MASUKKAN WEB APP URL DARI GOOGLE APPS SCRIPT DI BAWAH INI
+        const API_URL = "https://script.google.com/macros/s/AKfycbzI_fF44nci7UaOWsbwDLANmcPIkC1OM-duKW1W9_7hKYJ_I-YUUAjp4DqQshTdFcjW/exec";
+
         document.getElementById('sidebarToggle').addEventListener('click', function() {
             document.getElementById('sidebar').classList.toggle('active');
         });
+
+        // Fungsi untuk mengambil dan merangkum data statistik
+        async function fetchDashboardStats() {
+            if (!API_URL || API_URL === "URL_WEB_APP_ANDA_DI_SINI") {
+                console.warn("URL Web App belum diisi!");
+                return;
+            }
+
+            try {
+                // 1. Ambil data Siswa
+                const resSiswa = await fetch(`${API_URL}?action=getData&sheet=Siswa`);
+                const dataSiswa = await resSiswa.json();
+                
+                if (Array.isArray(dataSiswa)) {
+                    document.getElementById('totalSiswa').innerText = dataSiswa.length;
+
+                    // Hitung jumlah kelas unik yang ada
+                    const kelasUnik = new Set(dataSiswa.map(item => item.kelas).filter(Boolean));
+                    document.getElementById('totalKelas').innerText = kelasUnik.size;
+                }
+
+                // 2. Ambil data Pegawai (Filter peran = Guru)
+                const resPegawai = await fetch(`${API_URL}?action=getData&sheet=Pegawai`);
+                const dataPegawai = await resPegawai.json();
+                
+                if (Array.isArray(dataPegawai)) {
+                    const guruList = dataPegawai.filter(item => 
+                        item.peran && item.peran.toLowerCase() === 'guru'
+                    );
+                    document.getElementById('totalGuru').innerText = guruList.length;
+                }
+
+            } catch (error) {
+                console.error("Gagal memuat data dashboard:", error);
+            }
+        }
+
+        // Jalankan otomatis saat halaman selesai dimuat
+        document.addEventListener("DOMContentLoaded", fetchDashboardStats);
     </script>
 </body>
 </html>
