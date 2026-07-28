@@ -300,59 +300,67 @@
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- FILE JAVASCRIPT MODUL KITA (Tambahkan di sini) -->
-    <script src="js/siswa.js"></script>
+   <!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Script Integrasi Backend Google Apps Script -->
-    <script>
-        // MASUKKAN WEB APP URL DARI GOOGLE APPS SCRIPT DI BAWAH INI
-        const API_URL = "https://script.google.com/macros/s/AKfycbzI_fF44nci7UaOWsbwDLANmcPIkC1OM-duKW1W9_7hKYJ_I-YUUAjp4DqQshTdFcjW/exec";
+<!-- FILE JAVASCRIPT MODUL KITA -->
+<script src="js/siswa.js"></script>
 
-        document.getElementById('sidebarToggle').addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('active');
-        });
+<!-- Script Integrasi Backend Google Apps Script -->
+<script>
+    // MASUKKAN WEB APP URL DARI GOOGLE APPS SCRIPT DI BAWAH INI
+    const API_URL = "https://script.google.com/macros/s/AKfycbzI_fF44nci7UaOWsbwDLANmcPIkC1OM-duKW1W9_7hKYJ_I-YUUAjp4DqQshTdFcjW/exec";
 
-        // Fungsi untuk mengambil dan merangkum data statistik
-        async function fetchDashboardStats() {
-            if (!API_URL || API_URL === "URL_WEB_APP_ANDA_DI_SINI") {
-                console.warn("URL Web App belum diisi!");
-                return;
-            }
+    document.getElementById('sidebarToggle').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('active');
+    });
 
-            try {
-                // 1. Ambil data Siswa
-                const resSiswa = await fetch(`${API_URL}?action=getData&sheet=Siswa`);
-                const dataSiswa = await resSiswa.json();
-                
-                if (Array.isArray(dataSiswa)) {
-                    document.getElementById('totalSiswa').innerText = dataSiswa.length;
-
-                    // Hitung jumlah kelas unik yang ada
-                    const kelasUnik = new Set(dataSiswa.map(item => item.kelas).filter(Boolean));
-                    document.getElementById('totalKelas').innerText = kelasUnik.size;
-                }
-
-                // 2. Ambil data Pegawai (Filter peran = Guru)
-                const resPegawai = await fetch(`${API_URL}?action=getData&sheet=Pegawai`);
-                const dataPegawai = await resPegawai.json();
-                
-                if (Array.isArray(dataPegawai)) {
-                    const guruList = dataPegawai.filter(item => 
-                        item.peran && item.peran.toLowerCase() === 'guru'
-                    );
-                    document.getElementById('totalGuru').innerText = guruList.length;
-                }
-
-            } catch (error) {
-                console.error("Gagal memuat data dashboard:", error);
-            }
+    // Fungsi untuk mengambil dan merangkum data statistik
+    async function fetchDashboardStats() {
+        if (!API_URL || API_URL === "URL_WEB_APP_ANDA_DI_SINI") {
+            console.warn("URL Web App belum diisi!");
+            return;
         }
 
-        // Jalankan otomatis saat halaman selesai dimuat
-        document.addEventListener("DOMContentLoaded", fetchDashboardStats);
-    </script>
+        try {
+            // 1. Ambil data Siswa
+            const resSiswa = await fetch(`${API_URL}?action=getData&sheet=Siswa`);
+            const dataSiswa = await resSiswa.json();
+            
+            if (Array.isArray(dataSiswa)) {
+                // PENJAGA 1: Cek apakah elemen ada di layar sebelum diisi
+                const elSiswa = document.getElementById('totalSiswa');
+                if (elSiswa) elSiswa.innerText = dataSiswa.length;
+
+                // Hitung jumlah kelas unik yang ada
+                const kelasUnik = new Set(dataSiswa.map(item => item.kelas).filter(Boolean));
+                
+                // PENJAGA 2: Cek apakah elemen ada di layar sebelum diisi
+                const elKelas = document.getElementById('totalKelas');
+                if (elKelas) elKelas.innerText = kelasUnik.size;
+            }
+
+            // 2. Ambil data Pegawai (Filter peran = Guru)
+            const resPegawai = await fetch(`${API_URL}?action=getData&sheet=Pegawai`);
+            const dataPegawai = await resPegawai.json();
+            
+            if (Array.isArray(dataPegawai)) {
+                const guruList = dataPegawai.filter(item => 
+                    item.peran && item.peran.toLowerCase() === 'guru'
+                );
+                
+                // PENJAGA 3: Cek apakah elemen ada di layar sebelum diisi
+                const elGuru = document.getElementById('totalGuru');
+                if (elGuru) elGuru.innerText = guruList.length;
+            }
+
+        } catch (error) {
+            console.error("Gagal memuat data dashboard:", error);
+        }
+    }
+
+    // Jalankan otomatis saat halaman selesai dimuat
+    document.addEventListener("DOMContentLoaded", fetchDashboardStats);
+</script>
 </body>
 </html>
