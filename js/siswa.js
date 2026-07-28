@@ -1,11 +1,11 @@
 // Variabel global untuk menyimpan data siswa di memori browser
 let dataSiswaGlobal = [];
 
-// 1. FUNGSI UTAMA: Memuat Data dari Google Sheets
+// Fungsi Utama: Memuat Database Siswa
 function loadDatabaseSiswa() {
     const mainContent = document.getElementById('main-content');
     
-    // Tampilkan Loading Spinner
+    // 1. Tampilkan Spinner Loading
     mainContent.innerHTML = `
         <div class="text-center my-5 py-5">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
@@ -13,11 +13,20 @@ function loadDatabaseSiswa() {
         </div>
     `;
 
-    // Ambil Data dari Backend
-    fetch(API_URL + '?action=read&sheet=Siswa')
+    // 2. Tarik Data (Gunakan action=getData agar seragam dengan index.html)
+    fetch(API_URL + '?action=getData&sheet=Siswa')
         .then(response => response.json())
         .then(data => {
-            dataSiswaGlobal = data || [];
+            // PENJAGA: Membongkar data secara aman, baik data berbentuk Array langsung maupun Objek
+            if (Array.isArray(data)) {
+                dataSiswaGlobal = data;
+            } else if (data && Array.isArray(data.data)) {
+                dataSiswaGlobal = data.data;
+            } else {
+                dataSiswaGlobal = [];
+            }
+
+            // Lanjut ke perakitan tampilan
             renderDatabaseSiswaUI();
         })
         .catch(error => {
@@ -25,7 +34,7 @@ function loadDatabaseSiswa() {
             mainContent.innerHTML = `
                 <div class="alert alert-danger d-flex align-items-center" role="alert">
                     <i class="fa-solid fa-triangle-exclamation me-2 fs-4"></i>
-                    <div><strong>Gagal Memuat Data!</strong> Pastikan URL Web App sudah benar.</div>
+                    <div><strong>Gagal Memuat Data!</strong> Periksa koneksi atau URL Web App Anda.</div>
                 </div>
             `;
         });
