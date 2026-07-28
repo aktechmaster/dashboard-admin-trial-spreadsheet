@@ -1,11 +1,11 @@
 // Variabel global untuk menyimpan data siswa di memori browser
 let dataSiswaGlobal = [];
 
-// Fungsi Utama: Memuat Database Siswa
+// 1. FUNGSI UTAMA: MEMUAT DATABASE SISWA
 function loadDatabaseSiswa() {
     const mainContent = document.getElementById('main-content');
     
-    // 1. Tampilkan Spinner Loading
+    // Tampilkan Spinner Loading
     mainContent.innerHTML = `
         <div class="text-center my-5 py-5">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
@@ -13,11 +13,10 @@ function loadDatabaseSiswa() {
         </div>
     `;
 
-    // 2. Tarik Data (Gunakan action=getData agar seragam dengan index.html)
+    // Tarik Data
     fetch(API_URL + '?action=getData&sheet=Siswa')
         .then(response => response.json())
         .then(data => {
-            // PENJAGA: Membongkar data secara aman, baik data berbentuk Array langsung maupun Objek
             if (Array.isArray(data)) {
                 dataSiswaGlobal = data;
             } else if (data && Array.isArray(data.data)) {
@@ -26,7 +25,6 @@ function loadDatabaseSiswa() {
                 dataSiswaGlobal = [];
             }
 
-            // Lanjut ke perakitan tampilan
             renderDatabaseSiswaUI();
         })
         .catch(error => {
@@ -44,7 +42,7 @@ function loadDatabaseSiswa() {
 function renderDatabaseSiswaUI() {
     const mainContent = document.getElementById('main-content');
     
-    // Ambil daftar kelas unik secara otomatis dari spreadsheet
+    // Ambil daftar kelas unik secara otomatis
     const daftarKelas = [...new Set(dataSiswaGlobal.map(s => s.kelas).filter(Boolean))].sort();
     let opsiKelasHTML = '<option value="">-- Semua Kelas --</option>';
     daftarKelas.forEach(k => {
@@ -57,7 +55,6 @@ function renderDatabaseSiswaUI() {
                 <h4 class="mb-1 text-dark fw-bold">Database Siswa</h4>
                 <p class="text-muted mb-0">Kelola data biodata seluruh siswa sekolah secara terpusat.</p>
             </div>
-            <!-- Tombol untuk Memicu Pop-up Modal -->
             <button class="btn btn-primary px-3" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">
                 <i class="fa-solid fa-user-plus me-2"></i> Tambah Siswa
             </button>
@@ -68,7 +65,7 @@ function renderDatabaseSiswaUI() {
             <div class="col-md-8">
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                    <input type="text" id="searchSiswa" class="form-control border-start-0" placeholder="Cari berdasarkan nama atau NISN..." onkeyup="filterSiswa()">
+                    <input type="text" id="searchSiswa" class="form-control border-start-0" placeholder="Cari berdasarkan nama, NIS, atau NISN..." onkeyup="filterSiswa()">
                 </div>
             </div>
             <div class="col-md-4">
@@ -84,17 +81,17 @@ function renderDatabaseSiswaUI() {
                 <thead class="table-light">
                     <tr>
                         <th>ID Siswa</th>
-                        <th>NISN</th>
+                        <th>NIS / NISN</th>
                         <th>Nama Lengkap</th>
                         <th>Kelas</th>
                         <th>L/P</th>
-                        <th>Wali & No. HP</th>
+                        <th>Orang Tua</th>
                         <th>Alamat</th>
                         <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="tbodySiswa">
-                    <!-- Isi baris tabel disuntikkan via fungsi filterSiswa() -->
+                    <!-- Data disuntikkan via fungsi filterSiswa() -->
                 </tbody>
             </table>
         </div>
@@ -109,9 +106,13 @@ function renderDatabaseSiswaUI() {
               </div>
               <form id="formTambahSiswa" onsubmit="simpanSiswaBaru(event)">
                   <div class="modal-body row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">NIS</label>
+                        <input type="text" class="form-control" id="addNis" required placeholder="Contoh: 12345">
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label fw-semibold">NISN</label>
-                        <input type="text" class="form-control" id="addNisn" required placeholder="Contoh: 0012345678">
+                        <input type="text" class="form-control" id="addNisn" placeholder="Contoh: 0012345678">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Nama Lengkap Siswa</label>
@@ -129,20 +130,38 @@ function renderDatabaseSiswaUI() {
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">No. HP Wali</label>
-                        <input type="text" class="form-control" id="addHpWali" placeholder="08xxxxxxxxxx" required>
+                        <label class="form-label fw-semibold">No. HP Wali/Ortu</label>
+                        <input type="text" class="form-control" id="addHpWali" placeholder="08xxxxxxxxxx">
+                    </div>
+
+                    <div class="col-12"><hr class="my-1"><h6 class="fw-bold text-primary">Data Orang Tua</h6></div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nama Ayah</label>
+                        <input type="text" class="form-control" id="addNamaAyah" placeholder="Nama ayah kandung">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Nama Wali / Orang Tua</label>
-                        <input type="text" class="form-control" id="addNamaWali" required placeholder="Nama wali">
+                        <label class="form-label fw-semibold">Pekerjaan Ayah</label>
+                        <input type="text" class="form-control" id="addPekerjaanAyah" placeholder="Pekerjaan ayah">
                     </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nama Ibu</label>
+                        <input type="text" class="form-control" id="addNamaIbu" placeholder="Nama ibu kandung">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Pekerjaan Ibu</label>
+                        <input type="text" class="form-control" id="addPekerjaanIbu" placeholder="Pekerjaan ibu">
+                    </div>
+
+                    <div class="col-12"><hr class="my-1"></div>
+
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Kelurahan</label>
                         <input type="text" class="form-control" id="addKelurahan" placeholder="Nama kelurahan">
                     </div>
-                    <div class="col-12">
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Alamat Lengkap</label>
-                        <textarea class="form-control" id="addAlamat" rows="2" placeholder="Jalan, RT/RW, No. Rumah"></textarea>
+                        <textarea class="form-control" id="addAlamat" rows="1" placeholder="Jalan, RT/RW, No. Rumah"></textarea>
                     </div>
                   </div>
                   <div class="modal-footer">
@@ -155,7 +174,6 @@ function renderDatabaseSiswaUI() {
         </div>
     `;
 
-    // Jalankan penyaringan awal untuk menampilkan seluruh data
     filterSiswa();
 }
 
@@ -167,16 +185,15 @@ function filterSiswa() {
 
     if (!tbody) return;
 
-    // Menyaring data dari memori browser
     const hasilFilter = dataSiswaGlobal.filter(siswa => {
         const namaMatch = (siswa.nama_siswa || '').toLowerCase().includes(keyword);
+        const nisMatch = (siswa.nis || '').toString().toLowerCase().includes(keyword);
         const nisnMatch = (siswa.nisn || '').toString().toLowerCase().includes(keyword);
         const kelasMatch = kelasDipilih === '' || siswa.kelas === kelasDipilih;
 
-        return (namaMatch || nisnMatch) && kelasMatch;
+        return (namaMatch || nisMatch || nisnMatch) && kelasMatch;
     });
 
-    // Tampilkan pesan jika data tidak ditemukan
     if (hasilFilter.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -188,19 +205,18 @@ function filterSiswa() {
         return;
     }
 
-    // Susun baris tabel
     let htmlRows = '';
     hasilFilter.forEach(siswa => {
         htmlRows += `
             <tr>
                 <td><span class="badge bg-secondary">${siswa.id_siswa || '-'}</span></td>
-                <td>${siswa.nisn || '-'}</td>
+                <td><strong>${siswa.nis || '-'}</strong> / <small class="text-muted">${siswa.nisn || '-'}</small></td>
                 <td class="fw-bold text-dark">${siswa.nama_siswa || '-'}</td>
                 <td><span class="badge bg-info text-dark">${siswa.kelas || '-'}</span></td>
                 <td>${siswa.jenis_kelamin || '-'}</td>
                 <td>
-                    <div>${siswa.nama_wali || '-'}</div>
-                    <small class="text-muted">${siswa.no_hp_wali || '-'}</small>
+                    <small><strong>Ayah:</strong> ${siswa.nama_ayah || '-'}</small><br>
+                    <small><strong>Ibu:</strong> ${siswa.nama_ibu || '-'}</small>
                 </td>
                 <td>
                     <small>${siswa.alamat || ''} ${siswa.kelurahan ? ', ' + siswa.kelurahan : ''}</small>
@@ -228,32 +244,41 @@ function simpanSiswaBaru(event) {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
 
-    const payload = {
-        action: 'create',
-        sheet: 'Siswa',
-        nisn: document.getElementById('addNisn').value,
-        nama_siswa: document.getElementById('addNama').value,
-        kelas: document.getElementById('addKelas').value,
-        jenis_kelamin: document.getElementById('addJk').value,
-        nama_wali: document.getElementById('addNamaWali').value,
-        no_hp_wali: document.getElementById('addHpWali').value,
-        kelurahan: document.getElementById('addKelurahan').value,
-        alamat: document.getElementById('addAlamat').value
-    };
+    // Menggunakan URLSearchParams agar aman dari error CORS Google Apps Script
+    const formData = new URLSearchParams();
+    formData.append('action', 'create');
+    formData.append('sheet', 'Siswa');
+    formData.append('nis', document.getElementById('addNis').value);
+    formData.append('nisn', document.getElementById('addNisn').value);
+    formData.append('nama_siswa', document.getElementById('addNama').value);
+    formData.append('kelas', document.getElementById('addKelas').value);
+    formData.append('jenis_kelamin', document.getElementById('addJk').value);
+    formData.append('no_hp_wali', document.getElementById('addHpWali').value);
+    
+    // Field Ortu
+    formData.append('nama_ayah', document.getElementById('addNamaAyah').value);
+    formData.append('pekerjaan_ayah', document.getElementById('addPekerjaanAyah').value);
+    formData.append('nama_ibu', document.getElementById('addNamaIbu').value);
+    formData.append('pekerjaan_ibu', document.getElementById('addPekerjaanIbu').value);
+    
+    formData.append('kelurahan', document.getElementById('addKelurahan').value);
+    formData.append('alamat', document.getElementById('addAlamat').value);
 
     fetch(API_URL, {
         method: 'POST',
-        body: JSON.stringify(payload)
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString()
     })
     .then(res => res.json())
     .then(res => {
-        // Tutup Modal Pop-up
         const modalEl = document.getElementById('modalTambahSiswa');
         const modal = bootstrap.Modal.getInstance(modalEl);
         if (modal) modal.hide();
 
         alert('Siswa baru berhasil ditambahkan!');
-        loadDatabaseSiswa(); // Refresh tabel otomatis
+        loadDatabaseSiswa();
     })
     .catch(err => {
         console.error(err);
