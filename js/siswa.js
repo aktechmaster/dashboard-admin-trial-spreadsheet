@@ -1,6 +1,3 @@
-// SIMPAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
-const API_URL = "https://script.google.com/macros/s/AKfycbzI_fF44nci7UaOWsbwDLANmcPIkC1OM-duKW1W9_7hKYJ_I-YUUAjp4DqQshTdFcjW/exec";
-
 // Fungsi Utama: Memuat Tampilan Database Siswa
 function loadDatabaseSiswa() {
     const mainContent = document.getElementById('main-content');
