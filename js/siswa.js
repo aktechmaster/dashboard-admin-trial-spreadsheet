@@ -5,7 +5,6 @@ let dataSiswaGlobal = [];
 function loadDatabaseSiswa() {
     const mainContent = document.getElementById('main-content');
     
-    // Tampilkan Spinner Loading
     mainContent.innerHTML = `
         <div class="text-center my-5 py-5">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
@@ -13,7 +12,6 @@ function loadDatabaseSiswa() {
         </div>
     `;
 
-    // Tarik Data
     fetch(API_URL + '?action=getData&sheet=Siswa')
         .then(response => response.json())
         .then(data => {
@@ -42,7 +40,6 @@ function loadDatabaseSiswa() {
 function renderDatabaseSiswaUI() {
     const mainContent = document.getElementById('main-content');
     
-    // Ambil daftar kelas unik secara otomatis
     const daftarKelas = [...new Set(dataSiswaGlobal.map(s => s.kelas).filter(Boolean))].sort();
     let opsiKelasHTML = '<option value="">-- Semua Kelas --</option>';
     daftarKelas.forEach(k => {
@@ -60,7 +57,7 @@ function renderDatabaseSiswaUI() {
             </button>
         </div>
 
-        <!-- Fitur Pencarian & Filter Kelas -->
+        <!-- Filter & Search -->
         <div class="row g-3 mb-3">
             <div class="col-md-8">
                 <div class="input-group">
@@ -75,7 +72,7 @@ function renderDatabaseSiswaUI() {
             </div>
         </div>
 
-        <!-- Wadah Tabel Data -->
+        <!-- Tabel Data Siswa -->
         <div class="table-responsive border rounded bg-white">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -91,18 +88,18 @@ function renderDatabaseSiswaUI() {
                     </tr>
                 </thead>
                 <tbody id="tbodySiswa">
-                    <!-- Data disuntikkan via fungsi filterSiswa() -->
+                    <!-- Data disuntikkan via filterSiswa() -->
                 </tbody>
             </table>
         </div>
 
-        <!-- MODAL FORM TAMBAH SISWA -->
+        <!-- ================= MODAL TAMBAH SISWA ================= -->
         <div class="modal fade" id="modalTambahSiswa" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
           <div class="modal-dialog modal-lg">
             <div class="modal-content">
               <div class="modal-header">
                 <h5 class="modal-title fw-bold text-dark"><i class="fa-solid fa-user-plus me-2 text-primary"></i>Tambah Data Siswa Baru</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
               </div>
               <form id="formTambahSiswa" onsubmit="simpanSiswaBaru(event)">
                   <div class="modal-body row g-3">
@@ -112,14 +109,13 @@ function renderDatabaseSiswaUI() {
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">NISN</label>
-                        <input type="text" class="form-control" id="addNisn" placeholder="Contoh: 0012345678">
+                        <input type="text" class="form-control" id="addNisn" placeholder="0012345678">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Nama Lengkap Siswa</label>
-                        <input type="text" class="form-control" id="addNama" required placeholder="Nama lengkap siswa">
+                        <input type="text" class="form-control" id="addNama" required placeholder="Nama lengkap">
                     </div>
                     
-                    <!-- DITAMBAHKAN: Tempat & Tanggal Lahir -->
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Tempat Lahir</label>
                         <input type="text" class="form-control" id="addTempatLahir" placeholder="Kota lahir">
@@ -149,7 +145,7 @@ function renderDatabaseSiswaUI() {
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Nama Ayah</label>
-                        <input type="text" class="form-control" id="addNamaAyah" placeholder="Nama ayah kandung">
+                        <input type="text" class="form-control" id="addNamaAyah" placeholder="Nama ayah">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Pekerjaan Ayah</label>
@@ -157,7 +153,7 @@ function renderDatabaseSiswaUI() {
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Nama Ibu</label>
-                        <input type="text" class="form-control" id="addNamaIbu" placeholder="Nama ibu kandung">
+                        <input type="text" class="form-control" id="addNamaIbu" placeholder="Nama ibu">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Pekerjaan Ibu</label>
@@ -170,7 +166,6 @@ function renderDatabaseSiswaUI() {
                         <label class="form-label fw-semibold">Kelurahan</label>
                         <input type="text" class="form-control" id="addKelurahan" placeholder="Kelurahan/Desa">
                     </div>
-                    <!-- DITAMBAHKAN: Kecamatan & Kabupaten/Kota -->
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Kecamatan</label>
                         <input type="text" class="form-control" id="addKecamatan" placeholder="Kecamatan">
@@ -181,12 +176,108 @@ function renderDatabaseSiswaUI() {
                     </div>
                     <div class="col-12">
                         <label class="form-label fw-semibold">Alamat Lengkap</label>
-                        <textarea class="form-control" id="addAlamat" rows="1" placeholder="Jalan, RT/RW, No. Rumah"></textarea>
+                        <textarea class="form-control" id="addAlamat" rows="1" placeholder="Jalan, RT/RW"></textarea>
                     </div>
                   </div>
                   <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary px-4" id="btnSimpanSiswa">Simpan Data</button>
+                  </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= MODAL EDIT SISWA ================= -->
+        <div class="modal fade" id="modalEditSiswa" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header bg-warning-subtle">
+                <h5 class="modal-title fw-bold text-dark"><i class="fa-solid fa-pen-to-square me-2 text-warning"></i>Edit Data Siswa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <form id="formEditSiswa" onsubmit="simpanEditSiswa(event)">
+                  <input type="hidden" id="editIdSiswa">
+                  <div class="modal-body row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">NIS</label>
+                        <input type="text" class="form-control" id="editNis" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">NISN</label>
+                        <input type="text" class="form-control" id="editNisn">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nama Lengkap Siswa</label>
+                        <input type="text" class="form-control" id="editNama" required>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Tempat Lahir</label>
+                        <input type="text" class="form-control" id="editTempatLahir">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Tanggal Lahir</label>
+                        <input type="date" class="form-control" id="editTanggalLahir">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Jenis Kelamin</label>
+                        <select class="form-select" id="editJk" required>
+                            <option value="L">Laki-laki (L)</option>
+                            <option value="P">Perempuan (P)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Kelas</label>
+                        <input type="text" class="form-control" id="editKelas" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">No. HP Wali/Ortu</label>
+                        <input type="text" class="form-control" id="editHpWali">
+                    </div>
+
+                    <div class="col-12"><hr class="my-1"><h6 class="fw-bold text-warning">Data Orang Tua</h6></div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nama Ayah</label>
+                        <input type="text" class="form-control" id="editNamaAyah">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Pekerjaan Ayah</label>
+                        <input type="text" class="form-control" id="editPekerjaanAyah">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nama Ibu</label>
+                        <input type="text" class="form-control" id="editNamaIbu">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Pekerjaan Ibu</label>
+                        <input type="text" class="form-control" id="editPekerjaanIbu">
+                    </div>
+
+                    <div class="col-12"><hr class="my-1"><h6 class="fw-bold text-warning">Data Alamat Domisili</h6></div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Kelurahan</label>
+                        <input type="text" class="form-control" id="editKelurahan">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Kecamatan</label>
+                        <input type="text" class="form-control" id="editKecamatan">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Kabupaten / Kota</label>
+                        <input type="text" class="form-control" id="editKabupatenKota">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Alamat Lengkap</label>
+                        <textarea class="form-control" id="editAlamat" rows="1"></textarea>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning px-4" id="btnUpdateSiswa">Update Perubahan</button>
                   </div>
               </form>
             </div>
@@ -227,11 +318,9 @@ function filterSiswa() {
 
     let htmlRows = '';
     hasilFilter.forEach(siswa => {
-        // Tampilan tanggal lahir ringkas
         let ttl = [siswa.tempat_lahir, siswa.tanggal_lahir].filter(Boolean).join(', ');
         if (!ttl) ttl = '-';
 
-        // Tampilan alamat ringkas
         let alamatRingkas = [siswa.alamat, siswa.kelurahan, siswa.kecamatan, siswa.kabupaten_kota].filter(Boolean).join(', ');
         if (!alamatRingkas) alamatRingkas = '-';
 
@@ -249,14 +338,12 @@ function filterSiswa() {
                     <small><strong>Ayah:</strong> ${siswa.nama_ayah || '-'}</small><br>
                     <small><strong>Ibu:</strong> ${siswa.nama_ibu || '-'}</small>
                 </td>
-                <td>
-                    <small>${alamatRingkas}</small>
-                </td>
+                <td><small>${alamatRingkas}</small></td>
                 <td class="text-center">
-                    <button class="btn btn-sm btn-outline-primary me-1" title="Edit Data" onclick="alert('Fitur Edit akan kita buat di tahap selanjutnya!')">
+                    <button class="btn btn-sm btn-outline-warning me-1" title="Edit Data" onclick="bukaModalEdit('${siswa.id_siswa}')">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" title="Hapus Data" onclick="alert('Fitur Hapus akan kita buat di tahap selanjutnya!')">
+                    <button class="btn btn-sm btn-outline-danger" title="Hapus Data" onclick="hapusSiswa('${siswa.id_siswa}', '${siswa.nama_siswa}')">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </td>
@@ -267,14 +354,13 @@ function filterSiswa() {
     tbody.innerHTML = htmlRows;
 }
 
-// 4. FUNGSI MENGIRIM DATA SISWA BARU KE GOOGLE SHEETS
+// 4. MENGIRIM DATA SISWA BARU (CREATE)
 function simpanSiswaBaru(event) {
     event.preventDefault();
     
     const btn = document.getElementById('btnSimpanSiswa');
-    // KUNCI: Langsung matikan tombol agar tidak bisa diklik 2x
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan ke Google Sheets...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
 
     const formData = new URLSearchParams();
     formData.append('action', 'create');
@@ -282,22 +368,15 @@ function simpanSiswaBaru(event) {
     formData.append('nis', document.getElementById('addNis').value);
     formData.append('nisn', document.getElementById('addNisn').value);
     formData.append('nama_siswa', document.getElementById('addNama').value);
-    
-    // Field TTL Baru
     formData.append('tempat_lahir', document.getElementById('addTempatLahir').value);
     formData.append('tanggal_lahir', document.getElementById('addTanggalLahir').value);
-    
     formData.append('kelas', document.getElementById('addKelas').value);
     formData.append('jenis_kelamin', document.getElementById('addJk').value);
     formData.append('no_hp_wali', document.getElementById('addHpWali').value);
-    
-    // Field Ortu
     formData.append('nama_ayah', document.getElementById('addNamaAyah').value);
     formData.append('pekerjaan_ayah', document.getElementById('addPekerjaanAyah').value);
     formData.append('nama_ibu', document.getElementById('addNamaIbu').value);
     formData.append('pekerjaan_ibu', document.getElementById('addPekerjaanIbu').value);
-    
-    // Field Alamat Baru
     formData.append('kelurahan', document.getElementById('addKelurahan').value);
     formData.append('kecamatan', document.getElementById('addKecamatan').value);
     formData.append('kabupaten_kota', document.getElementById('addKabupatenKota').value);
@@ -305,30 +384,145 @@ function simpanSiswaBaru(event) {
 
     fetch(API_URL, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString()
     })
     .then(res => res.json())
     .then(res => {
-        // Reset isi form agar tidak terkirim ganda
         document.getElementById('formTambahSiswa').reset();
-
-        // Tutup Modal Pop-up
         const modalEl = document.getElementById('modalTambahSiswa');
         const modal = bootstrap.Modal.getInstance(modalEl);
         if (modal) modal.hide();
 
         alert('Siswa baru berhasil ditambahkan!');
-        loadDatabaseSiswa(); // Refresh data dari sheet
+        loadDatabaseSiswa();
     })
     .catch(err => {
         console.error(err);
-        alert('Gagal menyimpan data! Periksa koneksi internet Anda.');
+        alert('Gagal menyimpan data!');
     })
     .finally(() => {
         btn.disabled = false;
         btn.innerHTML = 'Simpan Data';
+    });
+}
+
+// 5. MEMBUKA MODAL EDIT DAN MEMASUKKAN DATA LAMA
+function bukaModalEdit(idSiswa) {
+    const siswa = dataSiswaGlobal.find(s => s.id_siswa === idSiswa);
+    if (!siswa) return alert('Data siswa tidak ditemukan!');
+
+    document.getElementById('editIdSiswa').value = siswa.id_siswa;
+    document.getElementById('editNis').value = siswa.nis || '';
+    document.getElementById('editNisn').value = siswa.nisn || '';
+    document.getElementById('editNama').value = siswa.nama_siswa || '';
+    document.getElementById('editTempatLahir').value = siswa.tempat_lahir || '';
+    
+    // Format Tanggal untuk input type="date" (YYYY-MM-DD)
+    if (siswa.tanggal_lahir) {
+        let tgl = new Date(siswa.tanggal_lahir);
+        if (!isNaN(tgl)) {
+            document.getElementById('editTanggalLahir').value = tgl.toISOString().split('T')[0];
+        } else {
+            document.getElementById('editTanggalLahir').value = siswa.tanggal_lahir;
+        }
+    } else {
+        document.getElementById('editTanggalLahir').value = '';
+    }
+
+    document.getElementById('editJk').value = siswa.jenis_kelamin || 'L';
+    document.getElementById('editKelas').value = siswa.kelas || '';
+    document.getElementById('editHpWali').value = siswa.no_hp_wali || '';
+    document.getElementById('editNamaAyah').value = siswa.nama_ayah || '';
+    document.getElementById('editPekerjaanAyah').value = siswa.pekerjaan_ayah || '';
+    document.getElementById('editNamaIbu').value = siswa.nama_ibu || '';
+    document.getElementById('editPekerjaanIbu').value = siswa.pekerjaan_ibu || '';
+    document.getElementById('editKelurahan').value = siswa.kelurahan || '';
+    document.getElementById('editKecamatan').value = siswa.kecamatan || '';
+    document.getElementById('editKabupatenKota').value = siswa.kabupaten_kota || '';
+    document.getElementById('editAlamat').value = siswa.alamat || '';
+
+    // Tampilkan Modal Edit
+    const modalEdit = new bootstrap.Modal(document.getElementById('modalEditSiswa'));
+    modalEdit.show();
+}
+
+// 6. MENGIRIM PERUBAHAN DATA (UPDATE)
+function simpanEditSiswa(event) {
+    event.preventDefault();
+
+    const btn = document.getElementById('btnUpdateSiswa');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Mengupdate...';
+
+    const formData = new URLSearchParams();
+    formData.append('action', 'update');
+    formData.append('sheet', 'Siswa');
+    formData.append('id_siswa', document.getElementById('editIdSiswa').value);
+    formData.append('nis', document.getElementById('editNis').value);
+    formData.append('nisn', document.getElementById('editNisn').value);
+    formData.append('nama_siswa', document.getElementById('editNama').value);
+    formData.append('tempat_lahir', document.getElementById('editTempatLahir').value);
+    formData.append('tanggal_lahir', document.getElementById('editTanggalLahir').value);
+    formData.append('kelas', document.getElementById('editKelas').value);
+    formData.append('jenis_kelamin', document.getElementById('editJk').value);
+    formData.append('no_hp_wali', document.getElementById('editHpWali').value);
+    formData.append('nama_ayah', document.getElementById('editNamaAyah').value);
+    formData.append('pekerjaan_ayah', document.getElementById('editPekerjaanAyah').value);
+    formData.append('nama_ibu', document.getElementById('editNamaIbu').value);
+    formData.append('pekerjaan_ibu', document.getElementById('editPekerjaanIbu').value);
+    formData.append('kelurahan', document.getElementById('editKelurahan').value);
+    formData.append('kecamatan', document.getElementById('editKecamatan').value);
+    formData.append('kabupaten_kota', document.getElementById('editKabupatenKota').value);
+    formData.append('alamat', document.getElementById('editAlamat').value);
+
+    fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+    })
+    .then(res => res.json())
+    .then(res => {
+        const modalEl = document.getElementById('modalEditSiswa');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+
+        alert('Data siswa berhasil di-update!');
+        loadDatabaseSiswa();
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Gagal mengupdate data siswa!');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = 'Update Perubahan';
+    });
+}
+
+// 7. MENGHAPUS DATA SISWA (DELETE)
+function hapusSiswa(idSiswa, namaSiswa) {
+    if (!confirm(`Apakah Anda yakin ingin menghapus data siswa "${namaSiswa}" (${idSiswa})?`)) {
+        return;
+    }
+
+    const formData = new URLSearchParams();
+    formData.append('action', 'delete');
+    formData.append('sheet', 'Siswa');
+    formData.append('id_siswa', idSiswa);
+
+    fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+    })
+    .then(res => res.json())
+    .then(res => {
+        alert(`Data siswa ${namaSiswa} berhasil dihapus!`);
+        loadDatabaseSiswa();
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Gagal menghapus data!');
     });
 }
