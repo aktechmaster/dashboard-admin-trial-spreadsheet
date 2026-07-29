@@ -731,67 +731,89 @@ function bacaFileGuruExcel(event) {
 }
 
 async function prosesImportGuru() {
-    if (!dataExcelGuruGlobal || dataExcelGuruGlobal.length === 0) return;
-
-    const btnProses = document.getElementById('btnProsesImportGuru');
-    if (btnProses) {
-        btnProses.disabled = true;
-        btnProses.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Mengimport...`;
+    if (!dataExcelGuruGlobal || dataExcelGuruGlobal.length === 0) {
+        alert("Tidak ada data Excel yang siap diimport.");
+        return;
     }
 
-    const dataFormatted = dataExcelGuruGlobal.map((row, index) => ({
-        id: 'GTK' + String(dataGuruGlobal.length + 1 + index).padStart(3, '0'),
-        nama_lengkap: row.nama_lengkap || '',
-        nip_niy: String(row.nip_niy || ''),
-        nuptk: String(row.nuptk || ''),
-        jabatan_utama: row.jabatan_utama || '',
-        tugas_tambahan: row.tugas_tambahan || '',
-        status_kepegawaian: row.status_kepegawaian || 'PNS',
-        "tmt-sekolah": row['tmt-sekolah'] || row.tmt_sekolah || '',
-        setifikasi: row.setifikasi || row.sertifikasi || 'Belum',
-        tempat_lahir: row.tempat_lahir || '',
-        tanggal_lahir: row.tanggal_lahir || '',
-        jenis_kelamin: row.jenis_kelamin || 'L',
-        alamat: row.alamat || '',
-        no_hp: String(row.no_hp || ''),
-        status: row.status || 'Aktif'
-    }));
+    const btnProses = document.getElementById('btnProsesImportGuru');
+    const originalBtnText = btnProses ? btnProses.innerHTML : 'Proses Import';
+    if (btnProses) {
+        btnProses.disabled = true;
+        btnProses.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Mengimport (0/${dataExcelGuruGlobal.length})...`;
+    }
 
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'importBatch',
-                sheet: 'Pegawai',
-                data: dataFormatted
-            })
-        });
+    let suksesCount = 0;
+    let gagalCount = 0;
 
-        const result = await response.json();
-        if (result.status === 'success') {
-            const modalEl = document.getElementById('modalImportGuru');
-            if (modalEl) {
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
-            }
+    // Loop data Excel dan kirim menggunakan format URLSearchParams yang kompatibel dengan GAS
+    for (let i = 0; i < dataExcelGuruGlobal.length; i++) {
+        const row = dataExcelGuruGlobal[i];
 
-            document.getElementById('fileImportGuruExcel').value = '';
-            document.getElementById('areaPreviewGuruImport').classList.add('d-none');
-            dataExcelGuruGlobal = [];
-
-            alert("Berhasil mengimport data guru ke Spreadsheet!");
-            muatDataGuruDariSpreadsheet();
-        } else {
-            alert("Gagal mengimport data: " + result.message);
-        }
-    } catch (error) {
-        console.error("Error prosesImportGuru:", error);
-        alert("Terjadi kesalahan saat mengimport data ke server.");
-    } finally {
         if (btnProses) {
-            btnProses.disabled = false;
-            btnProses.innerHTML = 'Proses Import';
+            btnProses.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Mengimport (${i + 1}/${dataExcelGuruGlobal.length})...`;
         }
+
+        const params = new URLSearchParams();
+        params.append('action', 'create');
+        params.append('sheet', 'Pegawai');
+
+        // Mendukung header kolom Excel format snake_case maupun Title Case
+        params.append('nama_lengkap', row.nama_lengkap || row['Nama Lengkap'] || '');
+        params.append('nip_niy', String(row.nip_niy || row['NIP/NIY'] || row['NIP / NIY'] || ''));
+        params.append('nuptk', String(row.nuptk || row['NUPTK'] || ''));
+        params.append('jabatan_utama', row.jabatan_utama || row['Jabatan Utama'] || '');
+        params.append('tugas_tambahan', row.tugas_tambahan || row['Tugas Tambahan'] || '');
+        params.append('status_kepegawaian', row.status_kepegawaian || row['Status Kepegawaian'] || 'PNS');
+        params.append('tmt_sekolah', row.tmt_sekolah || row['tmt-sekolah'] || row['TMT Sekolah'] || '');
+        params.append('sertifikasi', row.sertifikasi || row.setifikasi || row['Sertifikasi'] || 'Belum');
+        params.append('jenis_kelamin', row.jenis_kelamin || row['Jenis Kelamin'] || row['JK'] || 'L');
+        params.append('tempat_lahir', row.tempat_lahir || row['Tempat Lahir'] || '');
+        params.append('tanggal_lahir', row.tanggal_lahir || row['Tanggal Lahir'] || '');
+        params.append('no_hp', String(row.no_hp || row['No HP'] || row['No HP / WhatsApp'] || ''));
+        params.append('alamat', row.alamat || row['Alamat'] || row['Alamat Lengkap'] || '');
+        params.append('username', '');
+        params.append('password', '');
+        params.append('status', 'Aktif');
+
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: params
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                suksesCount++;
+            } else {
+                gagalCount++;
+            }
+        } catch (err) {
+            console.error("Gagal import baris ke-" + (i + 1), err);
+            gagalCount++;
+        }
+    }
+
+    alert(`Proses import selesai!\n✓ Berhasil: ${suksesCount} data\n✗ Gagal: ${gagalCount} data`);
+
+    // Tutup modal import dan reset input file
+    const modalEl = document.getElementById('modalImportGuru');
+    if (modalEl) {
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    }
+
+    const fileInput = document.getElementById('fileImportGuruExcel');
+    if (fileInput) fileInput.value = '';
+    const previewArea = document.getElementById('areaPreviewGuruImport');
+    if (previewArea) previewArea.classList.add('d-none');
+    dataExcelGuruGlobal = [];
+
+    // Reload data tabel dari Spreadsheet
+    await muatDataGuruDariSpreadsheet();
+
+    if (btnProses) {
+        btnProses.disabled = false;
+        btnProses.innerHTML = originalBtnText;
     }
 }
 
