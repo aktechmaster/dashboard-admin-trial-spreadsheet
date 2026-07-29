@@ -52,9 +52,23 @@ function renderDatabaseSiswaUI() {
                 <h4 class="mb-1 text-dark fw-bold">Database Siswa</h4>
                 <p class="text-muted mb-0">Kelola data biodata seluruh siswa sekolah secara terpusat.</p>
             </div>
-            <button class="btn btn-primary px-3" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">
-                <i class="fa-solid fa-user-plus me-2"></i> Tambah Siswa
-            </button>
+            <div class="d-flex gap-2">
+                <!-- Dropdown Tombol Export -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fa-solid fa-file-export me-1"></i> Export Data
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="exportKeExcel()"><i class="fa-solid fa-file-excel text-success me-2"></i> Export Excel (.xlsx)</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportKePDF()"><i class="fa-solid fa-file-pdf text-danger me-2"></i> Export PDF (.pdf)</a></li>
+                    </ul>
+                </div>
+
+                <!-- Tombol Tambah Siswa -->
+                <button class="btn btn-primary px-3" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">
+                    <i class="fa-solid fa-user-plus me-1"></i> Tambah Siswa
+                </button>
+            </div>
         </div>
 
         <!-- Filter & Search -->
@@ -525,4 +539,93 @@ function hapusSiswa(idSiswa, namaSiswa) {
         console.error(err);
         alert('Gagal menghapus data!');
     });
+}
+
+// ==========================================
+// 8. FUNGSI EXPORT DATA KE EXCEL (.XLSX)
+// ==========================================
+function exportKeExcel() {
+    if (!dataSiswaGlobal || dataSiswaGlobal.length === 0) {
+        alert("Tidak ada data siswa untuk diexport!");
+        return;
+    }
+
+    // Mapping header kolom agar rapi dan mudah dibaca di Excel
+    const dataExcel = dataSiswaGlobal.map((s, index) => ({
+        "No": index + 1,
+        "ID Siswa": s.id_siswa || '',
+        "NIS": s.nis || '',
+        "NISN": s.nisn || '',
+        "Nama Siswa": s.nama_siswa || '',
+        "Jenis Kelamin": s.jenis_kelamin || '',
+        "Tempat Lahir": s.tempat_lahir || '',
+        "Tanggal Lahir": s.tanggal_lahir || '',
+        "Kelas": s.kelas || '',
+        "No HP Wali": s.no_hp_wali || '',
+        "Nama Ayah": s.nama_ayah || '',
+        "Pekerjaan Ayah": s.pekerjaan_ayah || '',
+        "Nama Ibu": s.nama_ibu || '',
+        "Pekerjaan Ibu": s.pekerjaan_ibu || '',
+        "Alamat": s.alamat || '',
+        "Kelurahan": s.kelurahan || '',
+        "Kecamatan": s.kecamatan || '',
+        "Kabupaten/Kota": s.kabupaten_kota || ''
+    }));
+
+    // Proses konversi JSON ke Worksheet Excel
+    const worksheet = XLSX.utils.json_to_sheet(dataExcel);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Siswa");
+
+    // Otomatis download file Excel
+    const namaFile = `Data_Siswa_${new Date().toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(workbook, namaFile);
+}
+
+// ==========================================
+// 9. FUNGSI EXPORT DATA KE PDF (.PDF)
+// ==========================================
+function exportKePDF() {
+    if (!dataSiswaGlobal || dataSiswaGlobal.length === 0) {
+        alert("Tidak ada data siswa untuk diexport!");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('landscape'); // Landscape agar kolom muat banyak
+
+    // Judul & Header Dokumen
+    doc.setFontSize(16);
+    doc.text("LAPORAN DATABASE SISWA", 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 22);
+
+    // Kolom Header Tabel PDF
+    const headers = [["No", "ID Siswa", "NIS/NISN", "Nama Siswa", "JK", "Kelas", "Orang Tua", "Alamat"]];
+
+    // Baris Isi PDF
+    const rows = dataSiswaGlobal.map((s, index) => [
+        index + 1,
+        s.id_siswa || '-',
+        `${s.nis || '-'}\n${s.nisn || '-'}`,
+        s.nama_siswa || '-',
+        s.jenis_kelamin || '-',
+        s.kelas || '-',
+        `Ayah: ${s.nama_ayah || '-'}\nIbu: ${s.nama_ibu || '-'}`,
+        [s.alamat, s.kelurahan, s.kecamatan].filter(Boolean).join(', ') || '-'
+    ]);
+
+    // Format Tabel PDF Menggunakan AutoTable
+    doc.autoTable({
+        head: headers,
+        body: rows,
+        startY: 28,
+        theme: 'grid',
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [13, 110, 253] } // Warna biru Bootstrap
+    });
+
+    // Otomatis download file PDF
+    const namaFile = `Data_Siswa_${new Date().toISOString().slice(0,10)}.pdf`;
+    doc.save(namaFile);
 }
