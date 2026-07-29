@@ -53,7 +53,12 @@ function renderDatabaseSiswaUI() {
                 <p class="text-muted mb-0">Kelola data biodata seluruh siswa sekolah secara terpusat.</p>
             </div>
             <div class="d-flex gap-2">
-                <!-- Dropdown Tombol Export -->
+                <!-- Tombol Import Data (BARU) -->
+                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalImportSiswa">
+                    <i class="fa-solid fa-file-import me-1"></i> Import Excel
+                </button>
+
+                <!-- Dropdown Tombol Export Data -->
                 <div class="dropdown">
                     <button class="btn btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         <i class="fa-solid fa-file-export me-1"></i> Export Data
@@ -63,6 +68,13 @@ function renderDatabaseSiswaUI() {
                         <li><a class="dropdown-item" href="#" onclick="exportKePDF()"><i class="fa-solid fa-file-pdf text-danger me-2"></i> Export PDF (.pdf)</a></li>
                     </ul>
                 </div>
+
+                <!-- Tombol Tambah Siswa -->
+                <button class="btn btn-primary px-3" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">
+                    <i class="fa-solid fa-user-plus me-1"></i> Tambah Siswa
+                </button>
+            </div>
+        </div>
 
                 <!-- Tombol Tambah Siswa -->
                 <button class="btn btn-primary px-3" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">
@@ -296,6 +308,68 @@ function renderDatabaseSiswaUI() {
               </form>
             </div>
           </div>
+          
+        <!-- ================= MODAL IMPORT SISWA (BARU) ================= -->
+        <div class="modal fade" id="modalImportSiswa" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-file-import me-2"></i>Import Data Siswa dari Excel</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <!-- Panduan & Download Template -->
+                <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <i class="fa-solid fa-circle-info me-2 fs-5"></i>
+                        <span>Gunakan template resmi agar format kolom sesuai dengan database.</span>
+                    </div>
+                    <button class="btn btn-sm btn-light border fw-semibold" onclick="downloadTemplateExcel()">
+                        <i class="fa-solid fa-download text-primary me-1"></i> Download Template
+                    </button>
+                </div>
+
+                <!-- Input File -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Pilih File Excel (.xlsx / .xls / .csv)</label>
+                    <input type="file" class="form-control" id="fileImportExcel" accept=".xlsx, .xls, .csv" onchange="bacaFileExcel(event)">
+                </div>
+
+                <!-- Area Preview Tabel (Awalnya tersembunyi) -->
+                <div id="areaPreviewImport" class="d-none">
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-eye me-1 text-primary"></i> Preview Data (<span id="jumlahDataPreview">0</span> Siswa ditemukan)</h6>
+                        <small class="text-muted">Menampilkan maksimal 5 baris pertama</small>
+                    </div>
+                    <div class="table-responsive border rounded style-scroll" style="max-height: 200px;">
+                        <table class="table table-sm table-striped align-middle mb-0" style="font-size: 0.85rem;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>NIS</th>
+                                    <th>NISN</th>
+                                    <th>Nama Siswa</th>
+                                    <th>JK</th>
+                                    <th>Kelas</th>
+                                    <th>No HP Wali</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyPreviewImport">
+                                <!-- Data preview disuntikkan lewat JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary px-4" id="btnProsesImport" onclick="prosesImportSiswa()" disabled>
+                    <i class="fa-solid fa-upload me-1"></i> Proses Import
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
         </div>
     `;
 
