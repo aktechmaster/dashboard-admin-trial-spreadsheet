@@ -59,10 +59,6 @@ async function muatDataGuruDariSpreadsheet() {
     }
 }
 
-function renderDataGuruUI() {
-    muatDataGuruDariSpreadsheet();
-}
-
 // ============================================================
 // DATA GURU GLOBAL (DUMMY INITIAL DATA)
 // ============================================================
@@ -392,6 +388,7 @@ function renderDataGuruUI() {
     `;
 
     filterGuru();
+    muatDataGuruDariSpreadsheet();
 }
 
 // ============================================================
