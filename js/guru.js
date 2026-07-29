@@ -509,8 +509,9 @@ async function simpanGuruBaru(event) {
     };
 
     try {
-        const response = await fetch(SCRIPT_URL, {
+                const response = await fetch(SCRIPT_URL, {
             method: 'POST',
+            // Pastikan TIDAK ADA baris "headers" di sini
             body: JSON.stringify({
                 action: 'createData',
                 sheet: 'Pegawai',
