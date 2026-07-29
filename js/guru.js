@@ -1,3 +1,35 @@
+// Masukkan URL Web App Google Apps Script kamu di sini
+const SCRIPT_URL_GURU = "https://script.google.com/macros/s/AKfycbx...SESUAIKAN_URL_KAMU.../exec";
+
+// Fungsi untuk mengambil data dari Google Spreadsheet saat halaman dibuka
+function muatDataGuruDariSpreadsheet() {
+    fetch(SCRIPT_URL_GURU + "?action=getGuru")
+        .then(res => res.json())
+        .then(data => {
+            dataGuruGlobal = data.map(g => ({
+                id: g.id_pegawai,
+                namaLengkap: g.nama_lengkap,
+                nipNiy: g.nip_niy,
+                nuptk: g.nuptk,
+                jabatanUtama: g.jabatan_utama,
+                tugasTambahan: g.tugas_tambahan,
+                statusKepegawaian: g.status_kepegawaian,
+                tmtSekolah: g.tmt_sekolah,
+                sertifikasi: g.sertifikasi,
+                tempatLahir: g.tempat_lahir,
+                tanggalLahir: g.tanggal_lahir,
+                jenisKelamin: g.jenis_kelamin,
+                alamat: g.alamat,
+                noHp: g.no_hp,
+                username: g.username,
+                password: g.password,
+                statusSpreadsheet: g.status
+            }));
+            filterGuru();
+        })
+        .catch(err => console.error("Gagal memuat data guru:", err));
+}
+
 // ============================================================
 // DATA GURU GLOBAL (DUMMY INITIAL DATA)
 // ============================================================
