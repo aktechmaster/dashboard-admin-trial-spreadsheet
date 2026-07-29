@@ -813,43 +813,72 @@ function bacaFileExcel(event) {
     reader.readAsArrayBuffer(file);
 }
 
-// 3. FUNGSI EKSEKUSI IMPORT DATA KE DATABASE
-function prosesImportSiswa() {
+async function prosesImportSiswa() {
     if (!dataExcelGlobal || dataExcelGlobal.length === 0) {
         alert("Tidak ada data untuk diimport.");
         return;
     }
 
-    dataExcelGlobal.forEach((row, index) => {
-        const newId = 'SIS' + String(dataSiswaGlobal.length + 1 + index).padStart(3, '0');
-        
-        const siswaBaru = {
-            id: newId,
-            nis: String(row.NIS || row.nis || ''),
-            nisn: String(row.NISN || row.nisn || ''),
-            nama: row.Nama || row.nama || row['Nama Siswa'] || '',
-            tempatLahir: row['Tempat Lahir'] || row.tempat_lahir || '',
-            tanggalLahir: row['Tanggal Lahir'] || row.tanggal_lahir || '',
-            jk: row.JK || row.jk || row['Jenis Kelamin'] || 'L',
-            kelas: row.Kelas || row.kelas || '',
-            hpWali: row['No HP Wali'] || row.hp_wali || '',
-            namaAyah: row['Nama Ayah'] || row.nama_ayah || '',
-            pekerjaanAyah: row['Pekerjaan Ayah'] || row.pekerjaan_ayah || '',
-            namaIbu: row['Nama Ibu'] || row.nama_ibu || '',
-            pekerjaanIbu: row['Pekerjaan Ibu'] || row.pekerjaan_ibu || '',
-            kelurahan: row.Kelurahan || row.kelurahan || '',
-            kecamatan: row.Kecamatan || row.kecamatan || '',
-            kabupatenKota: row['Kabupaten/Kota'] || row.kabupaten_kota || '',
-            alamat: row['Alamat Lengkap'] || row.alamat || ''
-        };
-
-        dataSiswaGlobal.push(siswaBaru);
-    });
-
-    // Simpan perubahan ke storage jika aplikasi kamu pakai localStorage
-    if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('dataSiswaKey', JSON.stringify(dataSiswaGlobal));
+    const btnProses = document.getElementById('btnProsesImport');
+    const originalBtnText = btnProses ? btnProses.innerHTML : 'Proses Import';
+    if (btnProses) {
+        btnProses.disabled = true;
+        btnProses.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Mengimport (0/${dataExcelGlobal.length})...`;
     }
+
+    let suksesCount = 0;
+    let gagalCount = 0;
+
+    // Loop data Excel dan kirim data satu per satu ke Google Spreadsheet
+    for (let i = 0; i < dataExcelGlobal.length; i++) {
+        const row = dataExcelGlobal[i];
+
+        if (btnProses) {
+            btnProses.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Mengimport (${i + 1}/${dataExcelGlobal.length})...`;
+        }
+
+        const params = new URLSearchParams();
+        params.append('action', 'create');
+        params.append('sheet', 'Siswa');
+
+        // Mapping parameter disesuaikan dengan nama header kolom di Spreadsheet Siswa Anda
+        params.append('nis', String(row.NIS || row.nis || ''));
+        params.append('nisn', String(row.NISN || row.nisn || ''));
+        params.append('nama', row.Nama || row.nama || row['Nama Siswa'] || '');
+        params.append('tempat_lahir', row['Tempat Lahir'] || row.tempat_lahir || '');
+        params.append('tanggal_lahir', row['Tanggal Lahir'] || row.tanggal_lahir || '');
+        params.append('jk', row.JK || row.jk || row['Jenis Kelamin'] || 'L');
+        params.append('jenis_kelamin', row.JK || row.jk || row['Jenis Kelamin'] || 'L');
+        params.append('kelas', row.Kelas || row.kelas || '');
+        params.append('hp_wali', String(row['No HP Wali'] || row.hp_wali || ''));
+        params.append('nama_ayah', row['Nama Ayah'] || row.nama_ayah || '');
+        params.append('pekerjaan_ayah', row['Pekerjaan Ayah'] || row.pekerjaan_ayah || '');
+        params.append('nama_ibu', row['Nama Ibu'] || row.nama_ibu || '');
+        params.append('pekerjaan_ibu', row['Pekerjaan Ibu'] || row.pekerjaan_ibu || '');
+        params.append('kelurahan', row.Kelurahan || row.kelurahan || '');
+        params.append('kecamatan', row.Kecamatan || row.kecamatan || '');
+        params.append('kabupaten_kota', row['Kabupaten/Kota'] || row.kabupaten_kota || '');
+        params.append('alamat', row['Alamat Lengkap'] || row.alamat || '');
+
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: params
+            });
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                suksesCount++;
+            } else {
+                gagalCount++;
+            }
+        } catch (err) {
+            console.error("Gagal import siswa baris ke-" + (i + 1), err);
+            gagalCount++;
+        }
+    }
+
+    alert(`Proses import data siswa selesai!\n✓ Berhasil: ${suksesCount} data\n✗ Gagal: ${gagalCount} data`);
 
     // Tutup Modal Import
     const modalEl = document.getElementById('modalImportSiswa');
@@ -858,18 +887,23 @@ function prosesImportSiswa() {
         if (modal) modal.hide();
     }
 
-    // Reset Form Modal
+    // Reset UI Form Modal
     const fileInput = document.getElementById('fileImportExcel');
     const areaPreview = document.getElementById('areaPreviewImport');
-    const btnProses = document.getElementById('btnProsesImport');
 
     if (fileInput) fileInput.value = '';
     if (areaPreview) areaPreview.classList.add('d-none');
-    if (btnProses) btnProses.disabled = true;
     dataExcelGlobal = [];
 
-    // Reload tampilan dashboard & tabel
-    if (typeof filterSiswa === 'function') filterSiswa();
-    
-    alert("Berhasil mengimport data siswa!");
+    // Ambil ulang data siswa resmi dari Spreadsheet
+    if (typeof muatDataSiswaDariSpreadsheet === 'function') {
+        await muatDataSiswaDariSpreadsheet();
+    } else if (typeof filterSiswa === 'function') {
+        filterSiswa();
+    }
+
+    if (btnProses) {
+        btnProses.disabled = false;
+        btnProses.innerHTML = originalBtnText;
+    }
 }
