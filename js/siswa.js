@@ -308,6 +308,9 @@ function renderDatabaseSiswaUI() {
               </form>
             </div>
           </div>
+          </div>
+    `;
+
           
         <!-- ================= MODAL IMPORT SISWA (BARU) ================= -->
         <div class="modal fade" id="modalImportSiswa" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
@@ -370,9 +373,7 @@ function renderDatabaseSiswaUI() {
             </div>
           </div>
         </div>
-        </div>
-    `;
-
+        
     filterSiswa();
 }
 
