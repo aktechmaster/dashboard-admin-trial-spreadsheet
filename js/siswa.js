@@ -53,7 +53,7 @@ function renderDatabaseSiswaUI() {
                 <p class="text-muted mb-0">Kelola data biodata seluruh siswa sekolah secara terpusat.</p>
             </div>
             <div class="d-flex gap-2">
-                <!-- Tombol Import Data (BARU) -->
+                <!-- Tombol Import Data -->
                 <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalImportSiswa">
                     <i class="fa-solid fa-file-import me-1"></i> Import Excel
                 </button>
@@ -68,13 +68,6 @@ function renderDatabaseSiswaUI() {
                         <li><a class="dropdown-item" href="#" onclick="exportKePDF()"><i class="fa-solid fa-file-pdf text-danger me-2"></i> Export PDF (.pdf)</a></li>
                     </ul>
                 </div>
-
-                <!-- Tombol Tambah Siswa -->
-                <button class="btn btn-primary px-3" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">
-                    <i class="fa-solid fa-user-plus me-1"></i> Tambah Siswa
-                </button>
-            </div>
-        </div>
 
                 <!-- Tombol Tambah Siswa -->
                 <button class="btn btn-primary px-3" data-bs-toggle="modal" data-bs-target="#modalTambahSiswa">
@@ -308,10 +301,8 @@ function renderDatabaseSiswaUI() {
               </form>
             </div>
           </div>
-          </div>
-    `;
+        </div>
 
-          
         <!-- ================= MODAL IMPORT SISWA (BARU) ================= -->
         <div class="modal fade" id="modalImportSiswa" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
           <div class="modal-dialog modal-lg">
@@ -373,7 +364,8 @@ function renderDatabaseSiswaUI() {
             </div>
           </div>
         </div>
-        
+    `;
+
     filterSiswa();
 }
 
