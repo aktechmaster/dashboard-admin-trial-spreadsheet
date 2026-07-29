@@ -19,21 +19,20 @@ async function muatDataGuruDariSpreadsheet() {
 
     try {
         const response = await fetch(`${SCRIPT_URL}?action=getData&sheet=Pegawai`);
-        const result = await response.json();
+        const rawData = await response.json();
 
-        if (result.status === 'success' || Array.isArray(result.data)) {
-            const rawData = result.data || result;
-            
+        // doGet milikmu langsung mengembalikan Array Object
+        if (Array.isArray(rawData)) {
             dataGuruGlobal = rawData.map(item => ({
-                id: item.id || item.ID || item.nip_niy || '',
-                namaLengkap: item.nama_lengkap || item.nama || '',
+                id: item.id_pegawai || '',
+                namaLengkap: item.nama_lengkap || '',
                 nipNiy: String(item.nip_niy || ''),
                 nuptk: String(item.nuptk || ''),
                 jabatanUtama: item.jabatan_utama || '',
                 tugasTambahan: item.tugas_tambahan || '',
-                statusKepegawaian: item.status_kepegawaian || item.status_pegawai || 'PNS',
-                tmtSekolah: item['tmt-sekolah'] || item.tmt_sekolah || '',
-                sertifikasi: item.setifikasi || item.sertifikasi || 'Belum',
+                statusKepegawaian: item.status_kepegawaian || 'PNS',
+                tmtSekolah: item.tmt_sekolah || '',
+                sertifikasi: item.sertifikasi || 'Belum',
                 tempatLahir: item.tempat_lahir || '',
                 tanggalLahir: item.tanggal_lahir || '',
                 jenisKelamin: item.jenis_kelamin || 'L',
@@ -43,8 +42,8 @@ async function muatDataGuruDariSpreadsheet() {
             }));
 
             filterGuru();
-        } else {
-            throw new Error(result.message || 'Gagal mengambil data dari server.');
+        } else if (rawData.status === 'error') {
+            throw new Error(rawData.message);
         }
     } catch (error) {
         console.error('Error muatDataGuru:', error);
@@ -67,25 +66,7 @@ function renderDataGuruUI() {
 // ============================================================
 // DATA GURU GLOBAL (DUMMY INITIAL DATA)
 // ============================================================
-let dataGuruGlobal = [
-    {
-        id: "GTK001",
-        namaLengkap: "Drs. Ahmad Dahlan, M.Pd",
-        nipNiy: "197508121999031001",
-        nuptk: "1234567890123456",
-        jabatanUtama: "Guru Mata Pelajaran",
-        tugasTambahan: "Wali Kelas X-IPA-1",
-        statusKepegawaian: "PNS",
-        tmtSekolah: "2010-07-15",
-        sertifikasi: "Sudah",
-        tempatLahir: "Jakarta",
-        tanggalLahir: "1975-08-12",
-        jenisKelamin: "L",
-        alamat: "Jl. Sudirman No. 45",
-        noHp: "081234567890",
-        statusSpreadsheet: "Aktif"
-    }
-];
+let dataGuruGlobal = [];
 
 let dataExcelGuruGlobal = [];
 
@@ -488,51 +469,52 @@ async function simpanGuruBaru(event) {
         btnSubmit.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...`;
     }
 
-    const newId = 'GTK' + String(dataGuruGlobal.length + 1).padStart(3, '0');
-
-    const guruBaru = {
-        id: newId,
-        nama_lengkap: document.getElementById('addNamaGuru').value,
-        nip_niy: document.getElementById('addNipNiy').value,
-        nuptk: document.getElementById('addNuptk').value,
-        jabatan_utama: document.getElementById('addJabatanUtama').value,
-        tugas_tambahan: document.getElementById('addTugasTambahan').value,
-        status_kepegawaian: document.getElementById('addStatusKepegawaian').value,
-        "tmt-sekolah": document.getElementById('addTmtSekolah').value,
-        setifikasi: document.getElementById('addSertifikasi').value,
-        jenis_kelamin: document.getElementById('addJkGuru').value,
-        tempat_lahir: document.getElementById('addTempatLahirGuru').value,
-        tanggal_lahir: document.getElementById('addTanggalLahirGuru').value,
-        no_hp: document.getElementById('addNoHpGuru').value,
-        alamat: document.getElementById('addAlamatGuru').value,
-        status: 'Aktif'
-    };
+    // Menggunakan URLSearchParams agar data terbaca di e.parameter GAS
+    const params = new URLSearchParams();
+    params.append('action', 'create');
+    params.append('sheet', 'Pegawai');
+    
+    // Nama key Disesuaikan persis dengan Header Kolom di Google Sheets
+    params.append('nama_lengkap', document.getElementById('addNamaGuru').value);
+    params.append('nip_niy', document.getElementById('addNipNiy').value);
+    params.append('nuptk', document.getElementById('addNuptk').value);
+    params.append('jabatan_utama', document.getElementById('addJabatanUtama').value);
+    params.append('tugas_tambahan', document.getElementById('addTugasTambahan').value);
+    params.append('status_kepegawaian', document.getElementById('addStatusKepegawaian').value);
+    params.append('tmt_sekolah', document.getElementById('addTmtSekolah').value);
+    params.append('sertifikasi', document.getElementById('addSertifikasi').value);
+    params.append('jenis_kelamin', document.getElementById('addJkGuru').value);
+    params.append('tempat_lahir', document.getElementById('addTempatLahirGuru').value);
+    params.append('tanggal_lahir', document.getElementById('addTanggalLahirGuru').value);
+    params.append('no_hp', document.getElementById('addNoHpGuru').value);
+    params.append('alamat', document.getElementById('addAlamatGuru').value);
+    params.append('username', '');
+    params.append('password', '');
+    params.append('status', 'Aktif');
 
     try {
-                const response = await fetch(SCRIPT_URL, {
+        const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            // Pastikan TIDAK ADA baris "headers" di sini
-            body: JSON.stringify({
-                action: 'createData',
-                sheet: 'Pegawai',
-                data: guruBaru
-            })
+            body: params
         });
 
         const result = await response.json();
         if (result.status === 'success') {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('modalTambahGuru'));
-            if (modal) modal.hide();
+            const modalEl = document.getElementById('modalTambahGuru');
+            if (modalEl) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
             document.getElementById('formTambahGuru').reset();
             
-            alert("Data guru berhasil disimpan ke Spreadsheet!");
-            muatDataGuruDariSpreadsheet();
+            alert(result.message);
+            await muatDataGuruDariSpreadsheet();
         } else {
             alert("Gagal menyimpan data: " + result.message);
         }
     } catch (error) {
         console.error("Error simpanGuruBaru:", error);
-        alert("Gagal mengirim data ke Spreadsheet.");
+        alert("Gagal mengirim data: " + error.message);
     } finally {
         if (btnSubmit) {
             btnSubmit.disabled = false;
@@ -576,49 +558,48 @@ async function simpanEditGuru(event) {
 
     const id = document.getElementById('editIdGuru').value;
 
-    const updatedGuru = {
-        id: id,
-        nama_lengkap: document.getElementById('editNamaGuru').value,
-        nip_niy: document.getElementById('editNipNiy').value,
-        nuptk: document.getElementById('editNuptk').value,
-        jabatan_utama: document.getElementById('editJabatanUtama').value,
-        tugas_tambahan: document.getElementById('editTugasTambahan').value,
-        status_kepegawaian: document.getElementById('editStatusKepegawaian').value,
-        "tmt-sekolah": document.getElementById('editTmtSekolah').value,
-        setifikasi: document.getElementById('editSertifikasi').value,
-        jenis_kelamin: document.getElementById('editJkGuru').value,
-        tempat_lahir: document.getElementById('editTempatLahirGuru').value,
-        tanggal_lahir: document.getElementById('editTanggalLahirGuru').value,
-        no_hp: document.getElementById('editNoHpGuru').value,
-        alamat: document.getElementById('editAlamatGuru').value,
-        status: 'Aktif'
-    };
+    const params = new URLSearchParams();
+    params.append('action', 'update');
+    params.append('sheet', 'Pegawai');
+    params.append('id_pegawai', id); // Key disesuaikan dengan e.parameter['id_pegawai']
+    
+    params.append('nama_lengkap', document.getElementById('editNamaGuru').value);
+    params.append('nip_niy', document.getElementById('editNipNiy').value);
+    params.append('nuptk', document.getElementById('editNuptk').value);
+    params.append('jabatan_utama', document.getElementById('editJabatanUtama').value);
+    params.append('tugas_tambahan', document.getElementById('editTugasTambahan').value);
+    params.append('status_kepegawaian', document.getElementById('editStatusKepegawaian').value);
+    params.append('tmt_sekolah', document.getElementById('editTmtSekolah').value);
+    params.append('sertifikasi', document.getElementById('editSertifikasi').value);
+    params.append('jenis_kelamin', document.getElementById('editJkGuru').value);
+    params.append('tempat_lahir', document.getElementById('editTempatLahirGuru').value);
+    params.append('tanggal_lahir', document.getElementById('editTanggalLahirGuru').value);
+    params.append('no_hp', document.getElementById('editNoHpGuru').value);
+    params.append('alamat', document.getElementById('editAlamatGuru').value);
+    params.append('status', 'Aktif');
 
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({
-                action: 'updateData',
-                sheet: 'Pegawai',
-                idKey: 'id',
-                idValue: id,
-                data: updatedGuru
-            })
+            body: params
         });
 
         const result = await response.json();
         if (result.status === 'success') {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('modalEditGuru'));
-            if (modal) modal.hide();
+            const modalEl = document.getElementById('modalEditGuru');
+            if (modalEl) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
 
-            alert("Data guru berhasil diperbarui di Spreadsheet!");
-            muatDataGuruDariSpreadsheet();
+            alert(result.message);
+            await muatDataGuruDariSpreadsheet();
         } else {
             alert("Gagal memperbarui data: " + result.message);
         }
     } catch (error) {
         console.error("Error simpanEditGuru:", error);
-        alert("Gagal memperbarui data ke Spreadsheet.");
+        alert("Gagal memperbarui data.");
     } finally {
         if (btnSubmit) {
             btnSubmit.disabled = false;
@@ -631,25 +612,25 @@ async function simpanEditGuru(event) {
 // HAPUS DATA GURU
 // ============================================================
 async function hapusGuru(id) {
-    if (!confirm("Apakah Anda yakin ingin menghapus data guru ini dari Spreadsheet?")) return;
+    if (!confirm("Apakah Anda yakin ingin menghapus data guru ini?")) return;
+
+    const params = new URLSearchParams();
+    params.append('action', 'delete');
+    params.append('sheet', 'Pegawai');
+    params.append('id_pegawai', id);
 
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({
-                action: 'deleteData',
-                sheet: 'Pegawai',
-                idKey: 'id',
-                idValue: id
-            })
+            body: params
         });
 
         const result = await response.json();
         if (result.status === 'success') {
-            alert("Data guru berhasil dihapus dari Spreadsheet!");
-            muatDataGuruDariSpreadsheet();
+            alert(result.message);
+            await muatDataGuruDariSpreadsheet();
         } else {
-            alert("Gagal menghapus data: " + (result.message || "Terjadi kesalahan di server"));
+            alert("Gagal menghapus data: " + result.message);
         }
     } catch (error) {
         console.error("Error hapusGuru:", error);
