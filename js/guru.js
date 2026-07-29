@@ -1,5 +1,5 @@
 // Masukkan URL Web App Google Apps Script kamu di sini
-const SCRIPT_URL_GURU = "https://script.google.com/macros/s/AKfycbzI_fF44nci7UaOWsbwDLANmcPIkC1OM-duKW1W9_7hKYJ_I-YUUAjp4DqQshTdFcjW/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzI_fF44nci7UaOWsbwDLANmcPIkC1OM-duKW1W9_7hKYJ_I-YUUAjp4DqQshTdFcjW/exec";
 
 // Fungsi untuk mengambil data dari Google Spreadsheet saat halaman dibuka
 async function muatDataGuruDariSpreadsheet() {
