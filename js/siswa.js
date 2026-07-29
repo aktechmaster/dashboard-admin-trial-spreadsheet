@@ -707,3 +707,169 @@ function exportKePDF() {
     const namaFile = `Data_Siswa_${new Date().toISOString().slice(0,10)}.pdf`;
     doc.save(namaFile);
 }
+
+// ============================================================
+// FUNGSI PENDUKUNG IMPORT EXCEL (Download Template, Preview, Process)
+// ============================================================
+
+// Variabel global untuk menampung data sementara dari Excel
+let dataExcelGlobal = [];
+
+// 1. FUNGSI DOWNLOAD TEMPLATE EXCEL
+function downloadTemplateExcel() {
+    const templateData = [
+        {
+            "NIS": "1001",
+            "NISN": "0081234567",
+            "Nama Siswa": "Ahmad Contoh",
+            "Tempat Lahir": "Jakarta",
+            "Tanggal Lahir": "2010-05-15",
+            "Jenis Kelamin": "L",
+            "Kelas": "X-IPA-1",
+            "No HP Wali": "081234567890",
+            "Nama Ayah": "Budi",
+            "Pekerjaan Ayah": "Pegawai Swasta",
+            "Nama Ibu": "Siti",
+            "Pekerjaan Ibu": "Ibu Rumah Tangga",
+            "Kelurahan": "Menteng",
+            "Kecamatan": "Menteng",
+            "Kabupaten/Kota": "Jakarta Pusat",
+            "Alamat Lengkap": "Jl. Merdeka No. 10"
+        }
+    ];
+    
+    if (typeof XLSX !== 'undefined') {
+        const worksheet = XLSX.utils.json_to_sheet(templateData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Template Siswa");
+        XLSX.writeFile(workbook, "Template_Import_Siswa.xlsx");
+    } else {
+        alert("Library SheetJS (XLSX) belum terpasang di file HTML.");
+    }
+}
+
+// 2. FUNGSI BACA FILE & PREVIEW
+function bacaFileExcel(event) {
+    const file = event.target.files[0];
+    const btnProses = document.getElementById('btnProsesImport');
+    const areaPreview = document.getElementById('areaPreviewImport');
+    const tbodyPreview = document.getElementById('tbodyPreviewImport');
+    const spanJumlah = document.getElementById('jumlahDataPreview');
+
+    if (!file) {
+        if(btnProses) btnProses.disabled = true;
+        if(areaPreview) areaPreview.classList.add('d-none');
+        return;
+    }
+
+    if (typeof XLSX === 'undefined') {
+        alert("Library SheetJS (XLSX) belum terpasang di file HTML.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            dataExcelGlobal = XLSX.utils.sheet_to_json(worksheet);
+
+            if (!dataExcelGlobal || dataExcelGlobal.length === 0) {
+                alert("File Excel kosong atau format tidak valid.");
+                if(btnProses) btnProses.disabled = true;
+                if(areaPreview) areaPreview.classList.add('d-none');
+                return;
+            }
+
+            // Render preview maksimal 5 baris pertama
+            tbodyPreview.innerHTML = '';
+            const previewRows = dataExcelGlobal.slice(0, 5);
+            previewRows.forEach(row => {
+                tbodyPreview.innerHTML += `
+                    <tr>
+                        <td>${row.NIS || row.nis || '-'}</td>
+                        <td>${row.NISN || row.nisn || '-'}</td>
+                        <td>${row.Nama || row.nama || row['Nama Siswa'] || '-'}</td>
+                        <td>${row.JK || row.jk || row['Jenis Kelamin'] || '-'}</td>
+                        <td>${row.Kelas || row.kelas || '-'}</td>
+                        <td>${row['No HP Wali'] || row.hp || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            spanJumlah.innerText = dataExcelGlobal.length;
+            areaPreview.classList.remove('d-none');
+            btnProses.disabled = false; // Mengaktifkan tombol Proses Import
+        } catch (error) {
+            console.error(error);
+            alert("Gagal membaca file Excel. Pastikan format file .xlsx, .xls, atau .csv.");
+            if(btnProses) btnProses.disabled = true;
+            if(areaPreview) areaPreview.classList.add('d-none');
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+// 3. FUNGSI EKSEKUSI IMPORT DATA KE DATABASE
+function prosesImportSiswa() {
+    if (!dataExcelGlobal || dataExcelGlobal.length === 0) {
+        alert("Tidak ada data untuk diimport.");
+        return;
+    }
+
+    dataExcelGlobal.forEach((row, index) => {
+        const newId = 'SIS' + String(dataSiswaGlobal.length + 1 + index).padStart(3, '0');
+        
+        const siswaBaru = {
+            id: newId,
+            nis: String(row.NIS || row.nis || ''),
+            nisn: String(row.NISN || row.nisn || ''),
+            nama: row.Nama || row.nama || row['Nama Siswa'] || '',
+            tempatLahir: row['Tempat Lahir'] || row.tempat_lahir || '',
+            tanggalLahir: row['Tanggal Lahir'] || row.tanggal_lahir || '',
+            jk: row.JK || row.jk || row['Jenis Kelamin'] || 'L',
+            kelas: row.Kelas || row.kelas || '',
+            hpWali: row['No HP Wali'] || row.hp_wali || '',
+            namaAyah: row['Nama Ayah'] || row.nama_ayah || '',
+            pekerjaanAyah: row['Pekerjaan Ayah'] || row.pekerjaan_ayah || '',
+            namaIbu: row['Nama Ibu'] || row.nama_ibu || '',
+            pekerjaanIbu: row['Pekerjaan Ibu'] || row.pekerjaan_ibu || '',
+            kelurahan: row.Kelurahan || row.kelurahan || '',
+            kecamatan: row.Kecamatan || row.kecamatan || '',
+            kabupatenKota: row['Kabupaten/Kota'] || row.kabupaten_kota || '',
+            alamat: row['Alamat Lengkap'] || row.alamat || ''
+        };
+
+        dataSiswaGlobal.push(siswaBaru);
+    });
+
+    // Simpan perubahan ke storage jika aplikasi kamu pakai localStorage
+    if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('dataSiswaKey', JSON.stringify(dataSiswaGlobal));
+    }
+
+    // Tutup Modal Import
+    const modalEl = document.getElementById('modalImportSiswa');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        if (modal) modal.hide();
+    }
+
+    // Reset Form Modal
+    const fileInput = document.getElementById('fileImportExcel');
+    const areaPreview = document.getElementById('areaPreviewImport');
+    const btnProses = document.getElementById('btnProsesImport');
+
+    if (fileInput) fileInput.value = '';
+    if (areaPreview) areaPreview.classList.add('d-none');
+    if (btnProses) btnProses.disabled = true;
+    dataExcelGlobal = [];
+
+    // Reload tampilan dashboard & tabel
+    if (typeof filterSiswa === 'function') filterSiswa();
+    
+    alert("Berhasil mengimport data siswa!");
+}
