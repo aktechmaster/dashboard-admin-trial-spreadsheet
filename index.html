@@ -183,7 +183,8 @@
                         <i class="fa-solid fa-caret-down"></i>
                     </a>
                     <ul class="collapse submenu" id="menuPegawai">
-                        <li><a href="#">Data Guru (GTK)</a></li>
+                        <!-- Tambahkan onclick & href="javascript:void(0)" di sini -->
+                        <li><a href="javascript:void(0)" onclick="renderDataGuruUI()">Data Guru (GTK)</a></li>
                         <li><a href="#">Data Staf/Karyawan</a></li>
                         <li><a href="#">Absensi Pegawai</a></li>
                     </ul>
@@ -284,7 +285,8 @@
 
 <!-- FILE JAVASCRIPT MODUL KITA -->
 <script src="js/siswa.js"></script>
-
+<script src="js/guru.js"></script>
+    
 <!-- Script Integrasi Backend & Navigasi Router -->
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbzI_fF44nci7UaOWsbwDLANmcPIkC1OM-duKW1W9_7hKYJ_I-YUUAjp4DqQshTdFcjW/exec";
