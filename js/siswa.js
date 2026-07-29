@@ -332,8 +332,19 @@ function filterSiswa() {
 
     let htmlRows = '';
     hasilFilter.forEach(siswa => {
-        let ttl = [siswa.tempat_lahir, siswa.tanggal_lahir].filter(Boolean).join(', ');
-        if (!ttl) ttl = '-';
+        // Format Tanggal Lahir agar Rapi (DD MMMM YYYY)
+let tglFormatted = '';
+if (siswa.tanggal_lahir) {
+    let d = new Date(siswa.tanggal_lahir);
+    if (!isNaN(d)) {
+        tglFormatted = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    } else {
+        tglFormatted = siswa.tanggal_lahir;
+    }
+}
+
+let ttl = [siswa.tempat_lahir, tglFormatted].filter(Boolean).join(', ');
+if (!ttl) ttl = '-';
 
         let alamatRingkas = [siswa.alamat, siswa.kelurahan, siswa.kecamatan, siswa.kabupaten_kota].filter(Boolean).join(', ');
         if (!alamatRingkas) alamatRingkas = '-';
