@@ -829,7 +829,6 @@ async function prosesImportSiswa() {
     let suksesCount = 0;
     let gagalCount = 0;
 
-    // Loop data Excel dan kirim data satu per satu ke Google Spreadsheet
     for (let i = 0; i < dataExcelGlobal.length; i++) {
         const row = dataExcelGlobal[i];
 
@@ -841,24 +840,22 @@ async function prosesImportSiswa() {
         params.append('action', 'create');
         params.append('sheet', 'Siswa');
 
-        // Mapping parameter disesuaikan dengan nama header kolom di Spreadsheet Siswa Anda
-        params.append('nis', String(row.NIS || row.nis || ''));
+        // Parameter disesuaikan 100% dengan Header Spreadsheet (Gambar 1) & Template Excel (Gambar 2)
         params.append('nisn', String(row.NISN || row.nisn || ''));
-        params.append('nama', row.Nama || row.nama || row['Nama Siswa'] || '');
+        params.append('nama_siswa', row['Nama Siswa'] || row.nama_siswa || row.Nama || row.nama || '');
+        params.append('kelas', row.Kelas || row.kelas || '');
+        params.append('nama_ayah', row['Nama Ayah'] || row.nama_ayah || '');
+        params.append('no_hp_wali', String(row['No HP Wali'] || row.no_hp_wali || row.hp_wali || ''));
+        params.append('jenis_kelamin', row['Jenis Kelamin'] || row.JK || row.jk || row.jenis_kelamin || 'L');
         params.append('tempat_lahir', row['Tempat Lahir'] || row.tempat_lahir || '');
         params.append('tanggal_lahir', row['Tanggal Lahir'] || row.tanggal_lahir || '');
-        params.append('jk', row.JK || row.jk || row['Jenis Kelamin'] || 'L');
-        params.append('jenis_kelamin', row.JK || row.jk || row['Jenis Kelamin'] || 'L');
-        params.append('kelas', row.Kelas || row.kelas || '');
-        params.append('hp_wali', String(row['No HP Wali'] || row.hp_wali || ''));
-        params.append('nama_ayah', row['Nama Ayah'] || row.nama_ayah || '');
-        params.append('pekerjaan_ayah', row['Pekerjaan Ayah'] || row.pekerjaan_ayah || '');
-        params.append('nama_ibu', row['Nama Ibu'] || row.nama_ibu || '');
-        params.append('pekerjaan_ibu', row['Pekerjaan Ibu'] || row.pekerjaan_ibu || '');
+        params.append('alamat', row['Alamat Lengkap'] || row.alamat || '');
         params.append('kelurahan', row.Kelurahan || row.kelurahan || '');
         params.append('kecamatan', row.Kecamatan || row.kecamatan || '');
         params.append('kabupaten_kota', row['Kabupaten/Kota'] || row.kabupaten_kota || '');
-        params.append('alamat', row['Alamat Lengkap'] || row.alamat || '');
+        params.append('username', '');
+        params.append('password', '');
+        params.append('status', 'Aktif');
 
         try {
             const response = await fetch(SCRIPT_URL, {
@@ -880,14 +877,13 @@ async function prosesImportSiswa() {
 
     alert(`Proses import data siswa selesai!\n✓ Berhasil: ${suksesCount} data\n✗ Gagal: ${gagalCount} data`);
 
-    // Tutup Modal Import
+    // Tutup Modal Import & Reset
     const modalEl = document.getElementById('modalImportSiswa');
     if (modalEl && typeof bootstrap !== 'undefined') {
         const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
         if (modal) modal.hide();
     }
 
-    // Reset UI Form Modal
     const fileInput = document.getElementById('fileImportExcel');
     const areaPreview = document.getElementById('areaPreviewImport');
 
@@ -895,7 +891,7 @@ async function prosesImportSiswa() {
     if (areaPreview) areaPreview.classList.add('d-none');
     dataExcelGlobal = [];
 
-    // Ambil ulang data siswa resmi dari Spreadsheet
+    // Ambil ulang data dari Spreadsheet
     if (typeof muatDataSiswaDariSpreadsheet === 'function') {
         await muatDataSiswaDariSpreadsheet();
     } else if (typeof filterSiswa === 'function') {
